@@ -1,6 +1,7 @@
 import glob
 import os
 import tempfile
+import termcolor
 import xml.etree.ElementTree as ET
 import zipfile as ZF
 
@@ -207,10 +208,7 @@ def choose_by_path():
     return file_path
 
 
-def redact_menu(file_path):
-    redactor = DocxRedactor()
-    redactor.open(file_path)
-
+def redact_menu(redactor):
     print('(l) List all used highlighting colors')
     print('(r) Redact highlights')
     print('(s) Save your changes')
@@ -220,13 +218,16 @@ def redact_menu(file_path):
     if cmd == 'l':
         colors = redactor.get_all_colors()
         for color in colors:
-            print(color)
-        redact_menu(file_path)
+            try:
+                print(termcolor.colored(color, color))
+            except KeyError:
+                print(color)
+        redact_menu(redactor)
     elif cmd == 'r':
         replacement = input('> Replacement? ')
         color = input('> Color? ')
         redactor.redact(color, replacement)
-        redact_menu(file_path)
+        redact_menu(redactor)
     elif cmd == 's':
         print('Warning: the original file will be overwritten! Do you want to proceed? [N/y]', end=' ')
         proceed = input()
@@ -236,12 +237,12 @@ def redact_menu(file_path):
             print('Saved')
         else:
             print('Canceled')
-        redact_menu(file_path)
+        redact_menu(redactor)
     elif cmd == 'c':
         return
     else:
         print()
-        redact_menu(file_path)
+        redact_menu(redactor)
 
 
 def main():
@@ -253,7 +254,10 @@ def main():
         if action is None:
             break
         file_path = action()
-        redact_menu(file_path)
+
+        redactor = DocxRedactor()
+        redactor.open(file_path)
+        redact_menu(redactor)
 
 
 if __name__ == '__main__':
