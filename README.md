@@ -1,5 +1,8 @@
 # .Docx Redactor
 
+## Disclaimer
+This piece of software is not thoroughly tested and should be used with care.
+
 ### Usage
 1. Copy the script into the same folder your ```*.docx``` files are located
 2. Using ```cmd```or Anaconda change directory like so: ```cd path/to/folder``` ([terminal navigation tutorial](https://www.digitalcitizen.life/command-prompt-how-use-basic-commands))
