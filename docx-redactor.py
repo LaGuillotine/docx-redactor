@@ -104,7 +104,7 @@ class DocxRedactor:
         colors = sorted(frozenset(map(lambda h: h.attrib[self.expand('w:val')], highlights)))
         return colors
 
-    def redact(self, color, replacement):
+    def redact(self, color, replacement, keep_highlight=False):
         self.check_open()
 
         for highlight in self.get_highlights(color=color):
@@ -112,7 +112,7 @@ class DocxRedactor:
             if run is None:
                 print('Failed to successfully redact a highlight')
                 continue
-            self.replace_text_in_run_or_paragraph(run, replacement)
+            self.replace_text_in_run_or_paragraph(run, replacement, keep_highlight)
 
     def get_highlights(self, color=None):
         attribute = self.expand('w:val')
@@ -133,13 +133,13 @@ class DocxRedactor:
             except KeyError:
                 return None
 
-    def replace_text_in_run_or_paragraph(self, elem, text):
+    def replace_text_in_run_or_paragraph(self, elem, text, keep_highlight):
         if elem.tag == self.expand('w:r'):
             rPrs = list(elem.iter(self.expand('w:rPr')))
             for rPr in rPrs:
                 elem.remove(rPr)
 
-        if elem.tag == self.expand('w:p'):
+        if not keep_highlight and elem.tag == self.expand('w:p'):
             pPrs = list(elem.iter(self.expand('w:pPr')))
             for pPr in pPrs:
                 elem.remove(pPr)
@@ -211,6 +211,7 @@ def choose_by_path():
 def redact_menu(redactor):
     print('(l) List all used highlighting colors')
     print('(r) Redact highlights')
+    print('(k) Redact highlights but keep color')
     print('(s) Save your changes')
     print('(c) Close the current file')
 
@@ -223,10 +224,10 @@ def redact_menu(redactor):
             except KeyError:
                 print(color)
         redact_menu(redactor)
-    elif cmd == 'r':
+    elif cmd == 'r' or cmd == 'k':
         replacement = input('> Replacement? ')
         color = input('> Color? ')
-        redactor.redact(color, replacement)
+        redactor.redact(color, replacement, cmd == k)
         redact_menu(redactor)
     elif cmd == 's':
         print('Warning: the original file will be overwritten! Do you want to proceed? [N/y]', end=' ')
